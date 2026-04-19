@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DeliveryService } from '../../../core/services/delivery.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -8,7 +9,7 @@ import { Delivery } from '../../../core/models/delivery.model';
 @Component({
   selector: 'app-delivery-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="page">
       <div class="page-header">
@@ -27,11 +28,30 @@ import { Delivery } from '../../../core/models/delivery.model';
         </button>
       </div>
 
+      <div class="filters" *ngIf="!loading">
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="searchText"
+          placeholder="Rechercher une mission (adresse, description...)"
+        />
+        <select class="filter-select" [(ngModel)]="selectedCategory">
+          <option value="">Tous les types</option>
+          <option *ngFor="let cat of categoryOptions" [value]="cat">{{ getCategoryLabel(cat) }}</option>
+        </select>
+        <select class="filter-select" [(ngModel)]="selectedStatus">
+          <option value="">Tous les statuts</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ getStatusLabel(status) }}</option>
+        </select>
+        <button type="button" class="btn-reset" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+
       <div class="empty" *ngIf="!loading && displayedDeliveries.length === 0">
         <div class="empty-icon">📭</div>
         <h3>Aucune mission</h3>
-        <p *ngIf="user?.role === 'SENDER'">Créez votre première livraison !</p>
-        <p *ngIf="user?.role === 'DELIVERER'">Aucune mission disponible.</p>
+        <p *ngIf="hasActiveFilters">Aucun résultat avec les filtres actuels.</p>
+        <p *ngIf="!hasActiveFilters && user?.role === 'SENDER'">Créez votre première livraison !</p>
+        <p *ngIf="!hasActiveFilters && user?.role === 'DELIVERER'">Aucune mission disponible.</p>
       </div>
 
       <div class="delivery-grid" *ngIf="!loading && displayedDeliveries.length > 0">
@@ -81,6 +101,20 @@ import { Delivery } from '../../../core/models/delivery.model';
     .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #eee; }
     .tabs button { padding: 10px 20px; border: none; background: none; cursor: pointer; color: #888; font-size: 0.9rem; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; }
     .tabs button.active { color: #ff2d78; border-bottom-color: #ff2d78; }
+    .filters {
+      display: grid; grid-template-columns: 1.3fr 0.9fr 0.9fr auto; gap: 10px;
+      margin-bottom: 18px; align-items: center;
+    }
+    .search-input, .filter-select {
+      width: 100%; border: 1px solid #e0e0e0; border-radius: 10px;
+      padding: 10px 12px; font-size: 0.9rem; outline: none; box-sizing: border-box;
+    }
+    .search-input:focus, .filter-select:focus { border-color: #ff2d78; }
+    .btn-reset {
+      border: 1px solid #ff2d78; background: white; color: #ff2d78;
+      border-radius: 10px; padding: 10px 12px; font-weight: 700; cursor: pointer;
+    }
+    .btn-reset:hover { background: #fff0f5; }
     .empty { text-align: center; padding: 60px; color: #888; }
     .empty-icon { font-size: 4rem; margin-bottom: 16px; }
     .empty h3 { color: #1e2140; margin-bottom: 8px; }
@@ -111,6 +145,9 @@ import { Delivery } from '../../../core/models/delivery.model';
     .btn-accept:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-details { color: #ff2d78; font-weight: 600; text-decoration: none; font-size: 0.88rem; }
     .card-meta { padding: 10px 16px; background: #fafafa; display: flex; justify-content: space-between; font-size: 0.78rem; color: #aaa; border-top: 1px solid #f0f0f0; }
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: 1fr; }
+    }
   `]
 })
 export class DeliveryListComponent implements OnInit {
@@ -121,6 +158,9 @@ export class DeliveryListComponent implements OnInit {
   activeTab: 'available' | 'accepted' = 'available';
   loading = true;
   accepting: number | null = null;
+  searchText = '';
+  selectedCategory = '';
+  selectedStatus = '';
 
   constructor(
     private deliveryService: DeliveryService,
@@ -135,12 +175,46 @@ export class DeliveryListComponent implements OnInit {
   }
 
   get displayedDeliveries(): Delivery[] {
+    const query = this.searchText.trim().toLowerCase();
+
+    return this.baseDeliveries.filter(d => {
+      const matchCategory = !this.selectedCategory || d.itemCategory === this.selectedCategory;
+      const matchStatus = !this.selectedStatus || d.status === this.selectedStatus;
+      const matchText = !query
+        || d.itemDescription.toLowerCase().includes(query)
+        || d.pickupAddress.toLowerCase().includes(query)
+        || d.deliveryAddress.toLowerCase().includes(query);
+
+      return matchCategory && matchStatus && matchText;
+    });
+  }
+
+  get baseDeliveries(): Delivery[] {
     if (this.user?.role === 'SENDER') return this.sentDeliveries;
     return this.activeTab === 'available' ? this.availableDeliveries : this.acceptedDeliveries;
   }
 
+  get categoryOptions(): string[] {
+    return Array.from(new Set(this.baseDeliveries.map(d => d.itemCategory))).sort();
+  }
+
+  get statusOptions(): string[] {
+    return Array.from(new Set(this.baseDeliveries.map(d => d.status))).sort();
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!this.searchText.trim() || !!this.selectedCategory || !!this.selectedStatus;
+  }
+
   setTab(tab: 'available' | 'accepted'): void {
     this.activeTab = tab;
+    this.resetFilters();
+  }
+
+  resetFilters(): void {
+    this.searchText = '';
+    this.selectedCategory = '';
+    this.selectedStatus = '';
   }
 
   loadData(): void {

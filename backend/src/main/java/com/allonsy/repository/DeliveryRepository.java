@@ -15,4 +15,7 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     List<Delivery> findByStatus(DeliveryStatus status);
     List<Delivery> findBySenderOrderByCreatedAtDesc(User sender);
     List<Delivery> findByDelivererOrderByCreatedAtDesc(User deliverer);
+    List<Delivery> findByStatusAndCreatedAtAfterOrderByCreatedAtDesc(DeliveryStatus status, java.time.LocalDateTime threshold);
+    List<Delivery> findBySenderAndCreatedAtAfterOrderByCreatedAtDesc(User sender, java.time.LocalDateTime threshold);
+    List<Delivery> findByDelivererAndCreatedAtAfterOrderByCreatedAtDesc(User deliverer, java.time.LocalDateTime threshold);
 }

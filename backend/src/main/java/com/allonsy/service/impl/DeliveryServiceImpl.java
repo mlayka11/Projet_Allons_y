@@ -30,6 +30,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private static final double BASE_PRICE = 3.0;
     private static final double DELIVERER_CUT = 0.75; // 75% of price goes to deliverer
     private static final int POINTS_PER_DELIVERY = 10;
+    private static final int RECENT_MONTHS_WINDOW = 3;
 
     @Override
     public DeliveryResponse createDelivery(DeliveryRequest request, String email) {
@@ -56,7 +57,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public List<DeliveryResponse> getAvailableDeliveries() {
-        return deliveryRepository.findByStatus(DeliveryStatus.PENDING)
+        return deliveryRepository.findByStatusAndCreatedAtAfterOrderByCreatedAtDesc(
+                DeliveryStatus.PENDING,
+                getRecentThreshold())
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -64,7 +67,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Transactional(readOnly = true)
     public List<DeliveryResponse> getMySentDeliveries(String email) {
         User user = getUserByEmail(email);
-        return deliveryRepository.findBySenderOrderByCreatedAtDesc(user)
+        return deliveryRepository.findBySenderAndCreatedAtAfterOrderByCreatedAtDesc(
+                user,
+                getRecentThreshold())
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -72,7 +77,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Transactional(readOnly = true)
     public List<DeliveryResponse> getMyAcceptedDeliveries(String email) {
         User user = getUserByEmail(email);
-        return deliveryRepository.findByDelivererOrderByCreatedAtDesc(user)
+        return deliveryRepository.findByDelivererAndCreatedAtAfterOrderByCreatedAtDesc(
+                user,
+                getRecentThreshold())
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -192,6 +199,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     private Delivery getDelivery(Long id) {
         return deliveryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery not found: " + id));
+    }
+
+    private LocalDateTime getRecentThreshold() {
+        return LocalDateTime.now().minusMonths(RECENT_MONTHS_WINDOW);
     }
 
     private void validateDeliverer(Delivery delivery, String email) {

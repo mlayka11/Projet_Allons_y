@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
     <div class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <h1 class="brand">ALLONS-Y!</h1>
+          <img src="/logos/Logo-full description.png" alt="Allons-Y" class="brand-logo"/>
           <p>Bienvenue ! Connectez-vous pour continuer.</p>
         </div>
 
@@ -64,7 +64,7 @@ import { AuthService } from '../../../core/services/auth.service';
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
     .auth-header { text-align: center; margin-bottom: 32px; }
-    .brand { font-size: 2rem; font-weight: 900; color: #ff2d78; letter-spacing: 2px; margin: 0; }
+    .brand-logo { width: min(200px, 100%); height: auto; margin: 0 auto 8px; display: block; }
     .auth-header p { color: #666; margin-top: 8px; }
     .field { margin-bottom: 20px; }
     label { display: block; font-weight: 600; color: #1e2140; margin-bottom: 6px; font-size: 0.9rem; }

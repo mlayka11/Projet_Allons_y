@@ -36,14 +36,13 @@ import { MapComponent, RouteResult } from '../../../shared/components/map/map.co
             <span class="error" *ngIf="form.get('deliveryAddress')?.invalid && submitted">Obligatoire</span>
           </div>
 
-          <div class="section-title" style="margin-top: 8px;">Catégorie</div>
-          <div class="category-grid">
-            <div class="cat-option" *ngFor="let cat of categories"
-                 [class.selected]="form.get('itemCategory')?.value === cat.value"
-                 (click)="form.get('itemCategory')?.setValue(cat.value)">
-              <span class="cat-icon">{{ cat.icon }}</span>
-              <span class="cat-label">{{ cat.label }}</span>
-            </div>
+          <div class="field" style="margin-top: 8px;">
+            <label>Type d'objet</label>
+            <select formControlName="itemCategory">
+              <option value="" disabled selected>Choisir un type d'objet</option>
+              <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.icon }} {{ cat.label }}</option>
+            </select>
+            <span class="error" *ngIf="form.get('itemCategory')?.invalid && submitted">Obligatoire</span>
           </div>
 
           <div class="field" style="margin-top: 16px;">
@@ -89,16 +88,11 @@ import { MapComponent, RouteResult } from '../../../shared/components/map/map.co
     .form-card { background: white; border-radius: 20px; padding: 32px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
     .section-title { font-weight: 700; color: #1e2140; font-size: 1rem; margin-bottom: 8px; }
     .section-hint { font-size: 0.85rem; color: #888; margin-bottom: 16px; }
-    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 8px; }
-    .cat-option { border: 2px solid #eee; border-radius: 12px; padding: 10px 6px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .cat-option:hover { border-color: #ff2d78; }
-    .cat-option.selected { border-color: #ff2d78; background: #fff0f5; }
-    .cat-icon { font-size: 1.4rem; }
-    .cat-label { font-size: 0.7rem; color: #555; }
     .field { margin-bottom: 16px; }
     label { display: block; font-weight: 600; color: #1e2140; margin-bottom: 6px; font-size: 0.88rem; }
-    input, textarea { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; font-family: inherit; resize: vertical; }
-    input:focus, textarea:focus { border-color: #ff2d78; }
+    input, textarea, select { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; font-family: inherit; }
+    textarea { resize: vertical; }
+    input:focus, textarea:focus, select:focus { border-color: #ff2d78; }
     .error { color: #ff2d78; font-size: 0.8rem; margin-top: 4px; display: block; }
     .price-preview { background: #f8f9ff; border-radius: 12px; padding: 16px 20px; margin: 20px 0; border: 1px solid #e8eaff; }
     .price-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; color: #555; }

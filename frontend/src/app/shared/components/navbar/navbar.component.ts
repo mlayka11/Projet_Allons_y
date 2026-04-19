@@ -12,8 +12,7 @@ import { AuthResponse } from '../../../core/models/user.model';
   template: `
     <nav class="navbar">
       <div class="navbar-brand" routerLink="/dashboard">
-        <img src="assets/logo.png" alt="Allons-Y" class="logo" onerror="this.style.display='none'"/>
-        <span class="brand-name">ALLONS-Y!</span>
+        <img src="/logos/Logo-regular-removebg-preview.png" alt="Allons-Y" class="logo"/>
       </div>
 
       <div class="navbar-links" *ngIf="user">
@@ -46,7 +45,7 @@ import { AuthResponse } from '../../../core/models/user.model';
       align-items: center;
       justify-content: space-between;
       padding: 0 24px;
-      height: 64px;
+      height: 78px;
       background: #1e2140;
       color: white;
       position: sticky;
@@ -61,13 +60,7 @@ import { AuthResponse } from '../../../core/models/user.model';
       cursor: pointer;
       text-decoration: none;
     }
-    .logo { height: 36px; }
-    .brand-name {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #ff2d78;
-      letter-spacing: 1px;
-    }
+    .logo { height: 100px; width: auto; display: block; }
     .navbar-links {
       display: flex;
       gap: 8px;
@@ -119,6 +112,13 @@ import { AuthResponse } from '../../../core/models/user.model';
     .btn-logout:hover {
       background: rgba(255,45,120,0.2);
       border-color: #ff2d78;
+    }
+    @media (max-width: 900px) {
+      .navbar {
+        height: 68px;
+        padding: 0 14px;
+      }
+      .logo { height: 48px; }
     }
   `]
 })
